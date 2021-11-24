@@ -160,31 +160,40 @@
             }
         }
 
+        private List<string> _FilenamesWithErrors = new List<string>();
         private void ExportPage(HtmlNode pageNode, string pageName, string filename)
         {
-            StringBuilder htmlBuilder = new StringBuilder();
-            htmlBuilder.AppendLine("<!DOCTYPE html>");
-            htmlBuilder.AppendLine("<html>");
-            htmlBuilder.AppendLine(" <head>");
-            htmlBuilder.AppendLine("  <meta charset=\"UTF-8\">");
-            htmlBuilder.AppendLine(String.Format("  <title>{0}</title>", pageName));
-            htmlBuilder.AppendLine(" </head>");
-            htmlBuilder.AppendLine(" <body>");
-            htmlBuilder.AppendLine("  <p>");
-            htmlBuilder.AppendLine(String.Format("   {0}", m_linkHref));
-            htmlBuilder.AppendLine("  </p>");
-            if (pageNode != null)
+            try
             {
-                AddToHtmlBuilder(pageNode, htmlBuilder, 2);
+                StringBuilder htmlBuilder = new StringBuilder();
+                htmlBuilder.AppendLine("<!DOCTYPE html>");
+                htmlBuilder.AppendLine("<html>");
+                htmlBuilder.AppendLine(" <head>");
+                htmlBuilder.AppendLine("  <meta charset=\"UTF-8\">");
+                htmlBuilder.AppendLine(String.Format("  <title>{0}</title>", pageName));
+                htmlBuilder.AppendLine(" </head>");
+                htmlBuilder.AppendLine(" <body>");
+                htmlBuilder.AppendLine("  <p>");
+                htmlBuilder.AppendLine(String.Format("   {0}", m_linkHref));
+                htmlBuilder.AppendLine("  </p>");
+                if (pageNode != null)
+                {
+                    AddToHtmlBuilder(pageNode, htmlBuilder, 2);
+                }
+
+                htmlBuilder.AppendLine(" </body>");
+                htmlBuilder.AppendLine("</html>");
+                string filepath = Path.Combine(this.TextBoxExportDirectory.Text, filename);
+                new FileInfo(filepath).Directory.Create();
+                using (FileStream stream = File.Create(filepath))
+                {
+                    byte[] fileContents = new UTF8Encoding(true).GetBytes(htmlBuilder.ToString());
+                    stream.Write(fileContents, 0, fileContents.Length);
+                }
             }
-            htmlBuilder.AppendLine(" </body>");
-            htmlBuilder.AppendLine("</html>");
-            string filepath = Path.Combine(this.TextBoxExportDirectory.Text, filename);
-            new FileInfo(filepath).Directory.Create();
-            using (FileStream stream = File.Create(filepath))
+            catch (Exception e)
             {
-                byte[] fileContents = new UTF8Encoding(true).GetBytes(htmlBuilder.ToString());
-                stream.Write(fileContents, 0, fileContents.Length);
+                _FilenamesWithErrors.Add(filename + Environment.NewLine + e);
             }
         }
 
